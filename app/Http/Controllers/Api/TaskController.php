@@ -15,7 +15,7 @@ class TaskController extends Controller
     #[OA\Get(
         path: "/api/tasks",
         tags: ["Tasks"],
-        security: [["bearerAuth" => []]],
+        security: [["passport" => []]],
         responses: [
             new OA\Response(
                 response: 200,
@@ -32,7 +32,7 @@ class TaskController extends Controller
     #[OA\Post(
         path: "/api/tasks",
         tags: ["Tasks"],
-        security: [["bearerAuth" => []]],
+        security: [["passport" => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -66,7 +66,7 @@ class TaskController extends Controller
     #[OA\Put(
         path: "/api/tasks/{id}",
         tags: ["Tasks"],
-        security: [["bearerAuth" => []]],
+        security: [["passport" => []]],
         parameters: [
             new OA\Parameter(
                 name: "id",
@@ -102,7 +102,7 @@ class TaskController extends Controller
     #[OA\Delete(
         path: "/api/tasks/{id}",
         tags: ["Tasks"],
-        security: [["bearerAuth" => []]],
+        security: [["passport" => []]],
         parameters: [
             new OA\Parameter(
                 name: "id",
