@@ -28,6 +28,7 @@ Route::middleware('auth:api')->group(function () {
     Route::middleware(['auth:api'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])
             ->middleware('permission:users.view');
+        Route::get('/users/{id}', [UserController::class, 'show']);
         Route::post('/users', [UserController::class, 'store'])
             ->middleware('permission:users.create');
         Route::put('/users/{user}', [UserController::class, 'update'])
