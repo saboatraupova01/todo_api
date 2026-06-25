@@ -5,26 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Jobs\SendWelcomeEmailJob;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-
     #[OA\Post(
         path: "/api/register",
         tags: ["Auth"],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "email", "password", "password_confirmation"],
+                required: ["name", "email"],
                 properties: [
                     new OA\Property(property: "name", type: "string"),
                     new OA\Property(property: "email", type: "string"),
-                    new OA\Property(property: "password", type: "string"),
-                    new OA\Property(property: "password_confirmation", type: "string"),
                 ]
             )
         ),
@@ -37,30 +36,35 @@ class AuthController extends Controller
     )]
     public function register(RegisterRequest $request)
     {
+        $username = Str::lower(Str::random(6));
+        $passwordPlain = Str::random(10);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'username' => $username,
+            'password' => Hash::make($passwordPlain),
         ]);
 
-        $token = $user->createToken('auth_token')->accessToken;
+        SendWelcomeEmailJob::dispatch($user, $passwordPlain);
 
         return response()->json([
             'data' => [
-                'user' => $user,
-                'token' => $token,
+               // 'user' => $user,
             ],
             'message' => 'User registered successfully',
         ]);
     }
+
     #[OA\Post(
         path: "/api/login",
         tags: ["Auth"],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
+                required: ["username", "password"],
                 properties: [
-                    new OA\Property(property: "email", type: "string"),
+                    new OA\Property(property: "username", type: "string"),
                     new OA\Property(property: "password", type: "string"),
                 ]
             )
@@ -71,10 +75,12 @@ class AuthController extends Controller
                 description: "Success"
             )
         ]
-    )]
-    public function login(LoginRequest $request)
+    )]    public function login(LoginRequest $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt([
+            'username' => $request->username,
+            'password' => $request->password,
+        ])) {
             return response()->json([
                 'data' => null,
                 'message' => 'Invalid credentials'

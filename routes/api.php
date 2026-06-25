@@ -26,11 +26,14 @@ Route::middleware('auth:api')->group(function () {
     |---------------- USERS ----------------
     */
     Route::middleware(['auth:api'])->group(function () {
-
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::put('/users/{user}', [UserController::class, 'update']);
-        Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::get('/users', [UserController::class, 'index'])
+            ->middleware('permission:users.view');
+        Route::post('/users', [UserController::class, 'store'])
+            ->middleware('permission:users.create');
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->middleware('permission:users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->middleware('permission:users.delete');
     });
     Route::post('/users/{user}/roles', [UserController::class, 'assignRoles']);
 
@@ -60,4 +63,5 @@ Route::middleware('auth:api')->group(function () {
     |---------------- TASKS ----------------
     */
     Route::apiResource('tasks', TaskController::class);
+
 });
