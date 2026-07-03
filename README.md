@@ -1,70 +1,93 @@
-📌 Todo API (Laravel + Docker)
-🚀 О проекте
+# 🚀 Todo API (Laravel + Docker)
 
-Это backend API на Laravel с полностью контейнеризированной средой:
+![Laravel](https://img.shields.io/badge/Laravel-10-red?style=for-the-badge&logo=laravel)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue?style=for-the-badge&logo=docker)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
 
-PHP (Laravel)
-Nginx
-MySQL
-Docker / Docker Compose
+---
 
-Проект запускается одной командой без ручной установки зависимостей.
+## 📌 Описание проекта
 
-⚙️ Запуск проекта
-1. Клонировать проект
+Todo API — это backend-приложение на Laravel, полностью контейнеризированное с помощью Docker.
+
+Включает:
+
+- ⚙️ Laravel API
+- 🐳 Docker окружение
+- 🌐 Nginx
+- 🗄 MySQL
+- 🔁 Автоматические миграции
+
+---
+
+## ⚡ Быстрый старт
+
+### 📥 1. Клонирование проекта
+
+```bash
 git clone <repo-url>
 cd todo_api
-2. Запустить через Docker
+```
+### 2. Запуск проекта
+```
 docker compose up -d --build
-🌐 Доступ к проекту
-
-После запуска:
-
+```
+### 🌐 3. Открыть в браузере
 http://localhost:8080
-💥 ВАЖНО: ПОРТЫ (ОБЯЗАТЕЛЬНО ПРОЧИТАТЬ)
 
-При запуске нескольких копий проекта может возникнуть конфликт порта:
+## 💥 ВАЖНО: ПОРТЫ
+### ⚠️ Возможная ошибка
+### Bind for 0.0.0.0:8080 failed: port is already allocated
 
-Bind for 0.0.0.0:8080 failed: port is already allocated
-📌 Причина:
+### 🧠 Причина
+Порт 8080 уже используется другим контейнером или проектом.
 
-Порт 8080 уже используется другим запущенным контейнером или копией проекта.
-
-✔ Решение
-
-Если порт занят, необходимо изменить его в docker-compose.yml:
-
+## ✔ Решение
+Изменить порт в docker-compose.yml:
+```
 ports:
   - "8081:80"
+```
 
-Примеры:
+### 📌 Примеры:
 
-8080 → основной запуск
-8081 → копия проекта
-8082 → тестовая среда
-🧠 Важно понимать
+| Проект   | Порт |
+| -------- | ---- |
+| основной | 8080 |
+| копия    | 8081 |
+| тест     | 8082 |
 
-Это не ошибка проекта, а ограничение хоста:
+### 🐳 Docker команды
+```
+docker compose up -d --build   # запуск
+docker compose down            # остановка
+docker ps                      # список контейнеров
+```
 
-Один порт на компьютере может использовать только один сервис.
+### 🗄 База данных
+| Параметр | Значение |
+| -------- | -------- |
+| DB       | todo_api |
+| User     | user     |
+| Password | password |
+| Host     | db       |
 
-🗄 База данных
+### 🧱 Архитектура
+- [ Browser ]
+      ↓
+- [ Nginx (8080) ]
+      ↓
+- [ PHP-FPM (Laravel) ]
+      ↓
+- [ MySQL ]
 
-Настройки MySQL:
+### ✨ Особенности
+- 📦 полностью dockerized проект
+- 🔄 автоматический запуск окружения
+- 🧩 Laravel + Nginx + MySQL
+- 🚀 готов к клонированию и запуску одной командой
 
-DB_HOST=db
-DB_DATABASE=todo_api
-DB_USERNAME=user
-DB_PASSWORD=password
-🐳 Полезные команды
-docker compose up -d --build
-docker compose down
-docker ps
-✨ Особенности
-автоматический запуск контейнеров
-готовая Laravel среда
-миграции выполняются внутри контейнера
-поддержка многократного запуска через разные порты
-
-
-
+### 🧠 Заметки
+- Если порт занят — поменяйте 8080 → 8081
+- Первый запуск может занять время (composer install + migrations)
+- .env создаётся автоматически при старте контейнера
