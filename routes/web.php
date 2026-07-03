@@ -8,7 +8,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'ok'
+    ]);
+});
 
 Route::get('/test-queue', function () {
     SendWelcomeEmailJob::dispatch('test@example.com');
