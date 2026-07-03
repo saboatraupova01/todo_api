@@ -4,7 +4,6 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
-        container_name: laravel_app
         working_dir: /var/www
         volumes:
             - ./:/var/www
@@ -15,7 +14,6 @@ services:
 
     web:
         image: nginx:alpine
-        container_name: nginx_server
         ports:
             - "8080:80"
         volumes:
