@@ -5,7 +5,9 @@ use App\Jobs\SendWelcomeEmailJob;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'status' => 'ok'
+    ]);
 });
 
 Route::get('/', function () {
@@ -13,6 +15,7 @@ Route::get('/', function () {
         'status' => 'ok'
     ]);
 });
+
 
 Route::get('/test-queue', function () {
     SendWelcomeEmailJob::dispatch('test@example.com');

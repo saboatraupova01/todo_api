@@ -1,9 +1,12 @@
 services:
+
   app:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+
     container_name: laravel_app
+
     working_dir: /var/www
     volumes:
       - ./:/var/www
@@ -12,7 +15,9 @@ services:
 
   web:
     image: nginx:alpine
+
     container_name: nginx_server
+
     ports:
       - "8080:80"
     volumes:
@@ -25,6 +30,7 @@ services:
 
   db:
     image: mysql:8.0
+
     container_name: mysql_db
     restart: always
     environment:
@@ -39,6 +45,15 @@ services:
 
 volumes:
   dbdata:
+
+
+    environment:
+      MYSQL_DATABASE: todo_api
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - app-network
 
 networks:
   app-network:
