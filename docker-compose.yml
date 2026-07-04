@@ -11,6 +11,8 @@ services:
             -   db
         networks:
             - app-network
+        environment:
+            APP_ROLE: app
 
     web:
         image: nginx:alpine
@@ -36,6 +38,23 @@ services:
             - dbdata:/var/lib/mysql
         networks:
             - app-network
+
+    queue:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        command: php artisan queue:work --tries=3 --verbose
+        depends_on:
+            - db
+            - app
+        restart: unless-stopped
+        networks:
+            - app-network
+        environment:
+            APP_ROLE: queue
 
 volumes:
     dbdata:

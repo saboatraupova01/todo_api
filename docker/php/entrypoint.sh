@@ -37,6 +37,11 @@ echo "Running migrations..."
 
 php artisan migrate --force || true
 
-echo "Starting PHP-FPM..."
+if [ "$APP_ROLE" = "queue" ]; then
+    echo "Starting QUEUE worker..."
+    exec php artisan queue:work --tries=3 --verbose
+fi
 
-exec php-fpm
+echo "Starting application..."
+
+exec "$@"
