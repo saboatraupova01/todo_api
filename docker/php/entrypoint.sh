@@ -70,11 +70,6 @@ else
     echo "Personal Access Client already exists."
 fi
 
-if [ "$APP_ROLE" = "queue" ]; then
-    echo "Starting QUEUE worker..."
-    exec php artisan queue:work --tries=3 --verbose
-fi
-
 echo "Starting application..."
 
 exec "$@"

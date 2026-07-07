@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Services\KafkaProducer;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Tasks")]
@@ -51,9 +52,19 @@ class TaskController extends Controller
             )
         ]
     )]
-    public function store(StoreTaskRequest $request)
+
+
+    public function store(StoreTaskRequest $request, KafkaProducer $producer)
     {
         $task = Task::create($request->validated());
+
+        $producer->sendTaskCreated([
+            'id' => $task->id,
+            'title' => $task->title,
+            'description' => $task->description,
+            'status' => $task->status,
+            'created_at' => $task->created_at,
+        ]);
 
         return new TaskResource($task);
     }
