@@ -4,6 +4,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Enabled-blue?style=for-the-badge&logo=docker)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
 ![Swagger](https://img.shields.io/badge/Swagger-API%20Docs-green?style=for-the-badge&logo=swagger)
+![Kafka](https://img.shields.io/badge/Apache%20Kafka-Enabled-black?style=for-the-badge&logo=apachekafka)
 
 ---
 
@@ -72,9 +73,116 @@ CRUD операции для задач:
 | app | Laravel + PHP-FPM |
 | queue | Laravel Queue Worker |
 | db | MySQL 8.0 |
+| kafka | Apache Kafka Broker |
+| kafka-consumer | Kafka Event Consumer |
 
 
 ---
+## 📨 Apache Kafka Integration
+
+В проекте используется Apache Kafka для обработки событий в асинхронной архитектуре.
+
+Kafka используется для обработки события создания задачи.
+
+Когда пользователь создаёт новую задачу:
+
+User creates Task
+
+    ↓
+
+TaskController
+
+    ↓
+
+Kafka Producer
+
+    ↓
+
+Topic: task.created
+
+    ↓
+
+Kafka Consumer
+
+    ↓
+
+Save Task Event
+
+
+---
+
+## Kafka Services
+
+В Docker добавлены:
+
+| Container | Назначение |
+|-----------|------------|
+| kafka | Apache Kafka broker |
+| kafka-consumer | Consumer для обработки сообщений Kafka |
+
+---
+
+## Kafka Topic
+
+Используемый topic:
+#### task.created
+
+
+### Пример сообщения:
+
+```json
+{
+    "id": 1,
+    "title": "Create project",
+    "description": "Project description",
+    "status": "new",
+    "created_at": "2026-07-07T09:20:43.000000Z"
+}
+```
+### Проверка Kafka
+
+Войти в Kafka контейнер:
+
+```
+docker exec -it kafka bash
+```
+
+Посмотреть существующие topics:
+
+```
+/opt/kafka/bin/kafka-topics.sh \
+--bootstrap-server localhost:9092 \
+--list
+```
+
+Получить сообщения из topic:
+
+```
+/opt/kafka/bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092 \
+--topic task.created \
+--from-beginning
+```
+
+### Kafka Consumer
+Consumer запускается автоматически через Docker:
+
+```
+php artisan kafka:consume
+```
+
+## 📧 Email Configuration
+
+По умолчанию используется:
+
+#### MAIL_MAILER=log
+
+Письма сохраняются в:
+
+#### storage/logs/laravel.log
+
+Для реальной отправки через SMTP необходимо настроить собственные SMTP данные в `.env`.
+
 
 ## ⚡ Быстрый старт
 
@@ -251,6 +359,11 @@ docker compose logs -f app
 docker compose logs -f queue
 ```
 
+### Логи Consumer:
+```
+docker compose logs -f kafka-consumer
+```
+
 ### Вход в Laravel контейнер:
 ```
 docker compose exec app bash
@@ -284,6 +397,10 @@ todo_api/
  - DB_DATABASE=todo_api
  - DB_USERNAME=user
  - DB_PASSWORD=password
+ - KAFKA_BROKERS=kafka:9092
+ - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+ - KAFKA_CONSUMER_GROUP_ID=group
+
 
 ## 🚀 Features
 - ✅ Laravel REST API
@@ -294,8 +411,9 @@ todo_api/
 - ✅ Roles & Permissions system
 - ✅ Swagger API documentation
 - ✅ Laravel Queue Worker
-- ✅ Email notifications
-- ✅ Automatic project setup
+- ✅ Apache Kafka integration
+- ✅ Event-driven architecture
+- ✅ Kafka Consumer processing
 - ✅ Ready for cloning and deployment
 
 ## 🧠 Notes
