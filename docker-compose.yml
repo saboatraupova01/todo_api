@@ -7,8 +7,9 @@ services:
         working_dir: /var/www
         volumes:
             - ./:/var/www
+        user: "1000:1000"
         depends_on:
-            -   db
+            - db
         networks:
             - app-network
         environment:
@@ -26,8 +27,28 @@ services:
         networks:
             - app-network
 
+    queue:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        user: "1000:1000"
+        command: php artisan queue:work --tries=3 --verbose
+        depends_on:
+            - db
+            - app
+        restart: unless-stopped
+        networks:
+            - app-network
+        environment:
+            APP_ROLE: queue
+
     db:
         image: mysql:8.0
+        ports:
+            -   "3307:3306"
         restart: always
         environment:
             MYSQL_DATABASE: todo_api
@@ -38,23 +59,6 @@ services:
             - dbdata:/var/lib/mysql
         networks:
             - app-network
-
-    queue:
-        build:
-            context: .
-            dockerfile: docker/php/Dockerfile
-        working_dir: /var/www
-        volumes:
-            - ./:/var/www
-        command: php artisan queue:work --tries=3 --verbose
-        depends_on:
-            - db
-            - app
-        restart: unless-stopped
-        networks:
-            - app-network
-        environment:
-            APP_ROLE: queue
 
 volumes:
     dbdata:

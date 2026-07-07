@@ -1,6 +1,9 @@
 #!/bin/sh
-
 set -e
+
+echo "Fixing permissions..."
+
+
 
 echo "Checking .env..."
 
@@ -27,15 +30,18 @@ try {
     sleep 2
 done
 
-echo "Generating APP_KEY (safe check)..."
+echo "Generating APP_KEY..."
 
-if ! grep -q "APP_KEY=base64" .env; then
-    php artisan key:generate --force
-fi
+php artisan key:generate --force || true
 
 echo "Running migrations..."
 
 php artisan migrate --force || true
+
+# Passport FIX (ВАЖНО)
+if [ ! -f storage/oauth-private.key ]; then
+    php artisan passport:install --force || true
+fi
 
 if [ "$APP_ROLE" = "queue" ]; then
     echo "Starting QUEUE worker..."
