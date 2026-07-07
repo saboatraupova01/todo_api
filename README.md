@@ -193,7 +193,7 @@ Port	3306
 
 Service	Port
 Nginx	8080
-MySQL	3307
+MySQL	3306
 
 ### ⚠️ Возможная ошибка: порт занят
 
