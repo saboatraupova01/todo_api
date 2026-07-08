@@ -11,9 +11,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
+use App\Services\Kafka\UserEventProducer;
 
 class AuthController extends Controller
 {
+
+    private UserEventProducer $userEventProducer;
+
+
+    public function __construct(UserEventProducer $userEventProducer)
+    {
+        $this->userEventProducer = $userEventProducer;
+    }
     #[OA\Post(
         path: "/api/register",
         tags: ["Auth"],
@@ -45,7 +54,7 @@ class AuthController extends Controller
             'username' => $username,
             'password' => Hash::make($passwordPlain),
         ]);
-
+        $this->userEventProducer->userCreated($user);
         SendWelcomeEmailJob::dispatch($user, $passwordPlain);
 
         return response()->json([

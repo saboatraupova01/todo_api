@@ -6,8 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
+use App\Services\Kafka\UserEventProducer;
 class UserController extends Controller
 {
+
+    private UserEventProducer $userEventProducer;
+
+    public function __construct(UserEventProducer $userEventProducer){
+        $this->userEventProducer = $userEventProducer;
+    }
     /**
      * GET /api/users
      * Список пользователей
@@ -243,6 +250,7 @@ class UserController extends Controller
         ]);
 
         $user->update($data);
+        $this->userEventProducer->userUpdated($user);
 
         return response()->json([
             'message' => 'User updated',
@@ -356,6 +364,10 @@ class UserController extends Controller
         ]);
 
         $user->roles()->sync($data['role_ids']);
+        $role = $user->roles()
+            ->whereIn('roles.id', $data['role_ids'])
+            ->first();
+        $this->userEventProducer->roleAssigned($user, $role);
 
         return response()->json([
             'message' => 'Roles assigned successfully'
@@ -401,12 +413,18 @@ class UserController extends Controller
     )]
     public function assignPermissions(Request $request, User $user)
     {
-        $request->validate([
+        $data = $request->validate([
             'permission_ids' => ['required', 'array'],
             'permission_ids.*' => ['exists:permissions,id'],
         ]);
 
-        $user->permissions()->sync($request->permission_ids);
+        $user->permissions()->sync($data['permission_ids']);
+
+        $permission = $user->permissions()
+            ->whereIn('permissions.id', $data['permission_ids'])
+            ->first();
+
+        $this->userEventProducer->permissionAssigned($user, $permission);
 
         return response()->json([
             'message' => 'Permissions assigned successfully'

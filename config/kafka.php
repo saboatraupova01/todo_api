@@ -83,4 +83,6 @@ return [
      | Kafka message id key name
      */
     'message_id_key' => env('MESSAGE_ID_KEY', 'laravel-kafka::message-id'),
+    'task_topic' => env('KAFKA_TASK_TOPIC', 'task.events'),
+    'user_topic' => env('KAFKA_USER_TOPIC', 'user.events'),
 ];

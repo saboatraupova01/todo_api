@@ -7,12 +7,19 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
-use App\Services\KafkaProducer;
+use App\Services\Kafka\TaskEventProducer;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Tasks")]
+
 class TaskController extends Controller
 {
+    private TaskEventProducer $taskEventProducer;
+
+    public function __construct(TaskEventProducer $taskEventProducer)
+    {
+        $this->taskEventProducer = $taskEventProducer;
+    }
     #[OA\Get(
         path: "/api/tasks",
         tags: ["Tasks"],
@@ -54,17 +61,11 @@ class TaskController extends Controller
     )]
 
 
-    public function store(StoreTaskRequest $request, KafkaProducer $producer)
+    public function store(StoreTaskRequest $request)
     {
         $task = Task::create($request->validated());
 
-        $producer->sendTaskCreated([
-            'id' => $task->id,
-            'title' => $task->title,
-            'description' => $task->description,
-            'status' => $task->status,
-            'created_at' => $task->created_at,
-        ]);
+        $this->taskEventProducer->taskCreated($task);
 
         return new TaskResource($task);
     }
@@ -91,8 +92,8 @@ class TaskController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "title", type: "string"),
-                    new OA\Property(property: "status", type: "string"),
                     new OA\Property(property: "description", type: "string"),
+                    new OA\Property(property: "status", type: "string"),
                 ]
             )
         ),
@@ -107,9 +108,10 @@ class TaskController extends Controller
     {
         $task->update($request->validated());
 
+        $this->taskEventProducer->taskUpdated($task);
+
         return new TaskResource($task);
     }
-
     #[OA\Delete(
         path: "/api/tasks/{id}",
         tags: ["Tasks"],
@@ -131,6 +133,7 @@ class TaskController extends Controller
     )]
     public function destroy(Task $task)
     {
+        $this->taskEventProducer->taskDeleted($task->id);
         $task->delete();
 
         return response()->json([
