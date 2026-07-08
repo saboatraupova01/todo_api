@@ -78,91 +78,27 @@ CRUD операции для задач:
 
 
 ---
-## 📨 Apache Kafka Integration
+## Apache Kafka
 
-В проекте используется Apache Kafka для обработки событий в асинхронной архитектуре.
+Kafka используется для обработки событий приложения.
 
-Kafka используется для обработки события создания задачи.
+Реализованные события:
 
-Когда пользователь создаёт новую задачу:
+### Tasks
+- task.created
+- task.updated
+- task.deleted
 
-User creates Task
+### Users
+- user.created
+- user.updated
+- user.role.assigned
+- user.permission.assigned
 
-    ↓
+Kafka topic:
 
-TaskController
-
-    ↓
-
-Kafka Producer
-
-    ↓
-
-Topic: task.created
-
-    ↓
-
-Kafka Consumer
-
-    ↓
-
-Save Task Event
-
-
----
-
-## Kafka Services
-
-В Docker добавлены:
-
-| Container | Назначение |
-|-----------|------------|
-| kafka | Apache Kafka broker |
-| kafka-consumer | Consumer для обработки сообщений Kafka |
-
----
-
-## Kafka Topic
-
-Используемый topic:
-#### task.created
-
-
-### Пример сообщения:
-
-```json
-{
-    "id": 1,
-    "title": "Create project",
-    "description": "Project description",
-    "status": "new",
-    "created_at": "2026-07-07T09:20:43.000000Z"
-}
-```
-### Проверка Kafka
-
-Войти в Kafka контейнер:
-
-```
-docker exec -it kafka bash
-```
-
-Посмотреть существующие topics:
-
-```
-/opt/kafka/bin/kafka-topics.sh \
---bootstrap-server localhost:9092 \
---list
-```
-
-Получить сообщения из topic:
-
-```
-/opt/kafka/bin/kafka-console-consumer.sh \
---bootstrap-server localhost:9092 \
---topic task.created \
---from-beginning
-```
+- task.events
+- user.events
 
 ### Kafka Consumer
 Consumer запускается автоматически через Docker:
