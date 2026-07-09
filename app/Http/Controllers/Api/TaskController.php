@@ -73,13 +73,45 @@ class TaskController extends Controller
 
         return new TaskResource($task);
     }
-
+    #[OA\Get(
+        path: "/api/tasks/{id}",
+        tags: ["Tasks"],
+        security: [["passport" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "Task ID",
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Task details"
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Unauthenticated"
+            ),
+            new OA\Response(
+                response: 403,
+                description: "Forbidden - user cannot access this task"
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Task not found"
+            )
+        ]
+    )]
     public function show(Task $task)
     {
         $this->authorize('view', $task);
 
         return new TaskResource($task);
     }
+
 
     #[OA\Put(
         path: "/api/tasks/{id}",

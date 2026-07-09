@@ -648,6 +648,42 @@
             }
         },
         "/api/tasks/{id}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "operationId": "32c40e2d1129b80c1dcabd538df63a33",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Task ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task details"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden - user cannot access this task"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    }
+                },
+                "security": [
+                    {
+                        "passport": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Tasks"
@@ -672,10 +708,10 @@
                                     "title": {
                                         "type": "string"
                                     },
-                                    "status": {
+                                    "description": {
                                         "type": "string"
                                     },
-                                    "description": {
+                                    "status": {
                                         "type": "string"
                                     }
                                 },
