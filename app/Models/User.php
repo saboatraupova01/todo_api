@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Passport\HasApiTokens;
+use App\Models\Task;
 
 class User extends Authenticatable
 {
@@ -77,6 +78,11 @@ class User extends Authenticatable
             Permission::class,
             'user_permission'
         );
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 
 

@@ -8,6 +8,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Services\Kafka\TaskEventProducer;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Tasks")]
@@ -31,9 +32,11 @@ class TaskController extends Controller
             )
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::paginate(10);
+        $tasks = $request->user()
+            ->tasks()
+            ->get();
 
         return TaskResource::collection($tasks);
     }
@@ -63,8 +66,9 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request)
     {
-        $task = Task::create($request->validated());
-
+        $task = $request->user()
+            ->tasks()
+            ->create($request->validated());
         $this->taskEventProducer->taskCreated($task);
 
         return new TaskResource($task);
@@ -72,6 +76,8 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        $this->authorize('view', $task);
+
         return new TaskResource($task);
     }
 
@@ -106,6 +112,8 @@ class TaskController extends Controller
     )]
     public function update(UpdateTaskRequest $request, Task $task)
     {
+        $this->authorize('update', $task);
+
         $task->update($request->validated());
 
         $this->taskEventProducer->taskUpdated($task);
@@ -133,11 +141,16 @@ class TaskController extends Controller
     )]
     public function destroy(Task $task)
     {
+        $this->authorize('delete', $task);
+
         $this->taskEventProducer->taskDeleted($task->id);
+
         $task->delete();
 
         return response()->json([
             'message' => 'Deleted'
         ]);
     }
+
+
 }

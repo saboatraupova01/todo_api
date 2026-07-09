@@ -20,8 +20,6 @@ Route::post('/login', [AuthController::class, 'login']);
 | PROTECTED ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:api')->group(function () {
-
     /*
     |---------------- USERS ----------------
     */
@@ -34,7 +32,7 @@ Route::middleware('auth:api')->group(function () {
             ->middleware('permission:users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])
             ->middleware('permission:users.delete');
-    });
+
     Route::post('/users/{user}/roles', [UserController::class, 'assignRoles']);
 
     /*
@@ -62,6 +60,18 @@ Route::middleware('auth:api')->group(function () {
     /*
     |---------------- TASKS ----------------
     */
-    Route::apiResource('tasks', TaskController::class);
+    Route::get('/tasks', [TaskController::class, 'index'])
+        ->middleware('permission:tasks.view');
 
+    Route::post('/tasks', [TaskController::class, 'store'])
+        ->middleware('permission:tasks.create');
+
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])
+        ->middleware('permission:tasks.view');
+
+    Route::put('/tasks/{task}', [TaskController::class, 'update'])
+        ->middleware('permission:tasks.update');
+
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])
+        ->middleware('permission:tasks.delete');
 });

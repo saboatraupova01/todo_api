@@ -32,12 +32,19 @@ class RolePermissionSeeder extends Seeder
                 'users.view',
                 'users.create',
                 'users.update',
+                'tasks.view',
             ])->pluck('id')
         );
 
         // USER → только просмотр
         $user->permissions()->sync(
-            Permission::where('code', 'users.view')->pluck('id')
+            Permission::whereIn('code', [
+                'tasks.view',
+                'tasks.create',
+                'tasks.update',
+                'tasks.delete',
+                'users.view',
+            ])->pluck('id')
         );
     }
 }
