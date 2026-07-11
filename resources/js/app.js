@@ -5,39 +5,44 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
-window.Echo.channel('chat')
+window.Echo.join('chat')
+
+    .here((users) => {
+
+        const online = document.getElementById('online-users');
+
+        online.innerHTML = users
+            .map(user => `<div>${user.name}</div>`)
+            .join('');
+
+    })
+
+    .joining((user) => {
+        console.log('USER JOINED:', user);
+    })
+
+    .leaving((user) => {
+        console.log('USER LEFT:', user);
+    })
+
     .listen('.App\\Events\\MessageSent', (event) => {
 
+        const messages = document.getElementById('messages');
+
         const html = `
-<div id="message-${event.id}" class="bg-white rounded-lg shadow p-3 mt-3">
+            <div class="bg-white rounded-lg shadow p-3">
+                <div class="font-semibold">
+                    ${event.user}
+                </div>
 
-    <div class="text-sm font-semibold text-gray-600">
-        ${event.user}
-    </div>
+                <div>
+                    ${event.message}
+                </div>
+            </div>
+        `;
 
-    <div class="text-gray-800 message-text">
-        ${event.message}
-    </div>
-
-    <div class="text-xs text-gray-400 mt-1">
-        ${new Date(event.created_at).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        })}
-    </div>
-
-</div>
-
-        <div class="text-xs text-gray-400 mt-1">
-            ${new Date(event.created_at).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        })}
-        </div>
-
-    </div>
-`;
         messages.insertAdjacentHTML('beforeend', html);
+
         messages.scrollTop = messages.scrollHeight;
     });
 window.Echo.channel('chat')

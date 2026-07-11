@@ -9,6 +9,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PresenceChannel;
 
 class MessageSent implements ShouldBroadcastNow
 {
@@ -18,11 +19,9 @@ class MessageSent implements ShouldBroadcastNow
         public Message $message
     ) {}
 
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new Channel('chat'),
-        ];
+        return new PresenceChannel('chat');
     }
 
     public function broadcastWith(): array

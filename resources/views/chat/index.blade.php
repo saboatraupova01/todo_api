@@ -9,6 +9,17 @@
                     Chat
                 </h2>
 
+                <div class="mb-4">
+
+                    <h3 class="font-semibold">
+                        Пользователи онлайн:
+                    </h3>
+
+                    <div id="online-users">
+                        Нет пользователей
+                    </div>
+
+                </div>
 
                 <form method="POST" action="/messages">
                     @csrf
@@ -28,7 +39,6 @@
                     </button>
 
                 </form>
-
 
                 <div
                     id="messages"
