@@ -1,58 +1,395 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Real-Time Chat Application
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Веб-приложение онлайн-чата с обменом сообщениями в реальном времени без обновления страницы.
 
-## About Laravel
+Проект разработан на Laravel с использованием Laravel Reverb и WebSocket для мгновенной передачи сообщений между пользователями.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# 🚀 Технологии
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3
+- Laravel 13
+- Laravel Reverb
+- Laravel Echo
+- WebSocket
+- MySQL 8.4
+- Docker
+- Docker Compose
+- Nginx
+- Vite
+- Tailwind CSS
+- JavaScript
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 📌 Возможности
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Авторизация
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- Регистрация пользователей
+- Вход в систему
+- Работа через стандартную Laravel Authentication
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Real-time чат
 
-```bash
-composer require laravel/boost --dev
+- Отправка сообщений без обновления страницы
+- Получение сообщений через WebSocket
+- Обмен сообщениями между несколькими пользователями одновременно
+- Автоматическое добавление новых сообщений в чат
 
-php artisan boost:install
+---
+
+## Управление сообщениями
+
+- Создание сообщений
+- Просмотр истории сообщений
+- Редактирование собственных сообщений
+- Удаление собственных сообщений
+
+---
+
+## Интерфейс
+
+- Современный интерфейс на Tailwind CSS
+- Автоматическая прокрутка чата вниз при появлении новых сообщений
+- Динамическое обновление сообщений через JavaScript
+
+---
+
+# 🏗 Архитектура проекта
+
+Проект работает через Docker Compose и состоит из нескольких сервисов:
+
+```
+                    Browser
+                       |
+                       |
+                    Nginx
+                       |
+                       |
+                Laravel Application
+                 /              \
+                /                \
+            MySQL              Reverb
+                                  |
+                                  |
+                              WebSocket
+                                  |
+                    ------------------------
+                    |                      |
+                User 1                 User 2
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+# 🐳 Docker сервисы
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## app
 
-## Code of Conduct
+Основное Laravel приложение.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Отвечает за:
 
-## Security Vulnerabilities
+- Laravel Framework
+- PHP 8.3
+- Composer
+- Artisan команды
+- Бизнес-логику приложения
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## nginx
+
+Веб-сервер.
+
+Используется для обработки HTTP запросов и передачи их Laravel приложению.
+
+Порт:
+
+```
+8080
+```
+
+---
+
+## db
+
+MySQL база данных.
+
+Используется для хранения:
+
+- пользователей
+- сообщений
+- системных данных Laravel
+
+Версия:
+
+```
+MySQL 8.4
+```
+
+---
+
+## vite
+
+Frontend сервер.
+
+Отвечает за:
+
+- сборку JavaScript
+- Tailwind CSS
+- Laravel Echo
+
+Порт:
+
+```
+5173
+```
+
+---
+
+## reverb
+
+WebSocket сервер Laravel.
+
+Используется для:
+
+- Broadcasting событий
+- передачи сообщений в реальном времени
+- связи между пользователями
+
+Порт:
+
+```
+8081
+```
+
+---
+
+# ⚙️ Установка и запуск
+
+## 1. Клонировать репозиторий
+
+```bash
+git clone <repository-url>
+
+cd chat-app
+```
+
+---
+
+## 2. Создать файл окружения
+
+```bash
+cp .env.example .env
+```
+
+---
+
+## 3. Запустить проект
+
+```bash
+docker compose up -d --build
+```
+
+Docker автоматически:
+
+- собирает контейнеры
+- устанавливает зависимости PHP
+- устанавливает зависимости Node.js
+- создаёт ключ Laravel
+- запускает миграции
+- запускает Laravel Reverb
+- запускает Vite
+
+---
+
+## 4. Открыть приложение
+
+Перейти:
+
+```
+http://localhost:8080
+```
+
+
+---
+
+# 📡 Как работает Real-Time чат
+
+Процесс отправки сообщения:
+
+1. Пользователь вводит сообщение.
+2. Laravel получает POST-запрос.
+3. Сообщение сохраняется в MySQL.
+4. Создаётся событие `MessageSent`.
+5. Laravel Broadcasting отправляет событие в Laravel Reverb.
+6. Reverb передаёт событие через WebSocket.
+7. Laravel Echo получает событие в браузере.
+8. JavaScript добавляет сообщение в интерфейс без перезагрузки страницы.
+
+---
+
+# 🔥 Broadcasting Events
+
+В проекте используются события:
+
+## MessageSent
+
+Используется при создании нового сообщения.
+
+Передаёт:
+
+- id сообщения
+- текст сообщения
+- пользователя
+- время создания
+
+
+---
+
+## MessageUpdated
+
+Используется после редактирования сообщения.
+
+Обновляет сообщение у всех подключённых пользователей.
+
+---
+
+## MessageDeleted
+
+Используется после удаления сообщения.
+
+Удаляет сообщение у всех пользователей без обновления страницы.
+
+---
+
+# 📂 Структура проекта
+
+```
+app/
+├── Events/
+│   ├── MessageSent.php
+│   ├── MessageUpdated.php
+│   └── MessageDeleted.php
+│
+├── Http/
+│   └── Controllers/
+│
+└── Models/
+    └── Message.php
+
+
+resources/
+├── css/
+│   └── app.css
+│
+├── js/
+│   └── app.js
+│
+└── views/
+    └── chat/
+
+
+database/
+└── migrations/
+
+
+docker/
+├── nginx/
+│   └── default.conf
+│
+└── php/
+    ├── Dockerfile
+    ├── php.ini
+    └── entrypoint.sh
+```
+
+---
+
+# 🔐 Безопасность
+
+В проекте реализовано:
+
+- Авторизация пользователей через Laravel Authentication
+- Проверка владельца сообщения перед редактированием
+- Проверка владельца сообщения перед удалением
+- Защита CSRF через Laravel
+
+---
+
+# 🧪 Проверка работы
+
+Для проверки real-time функций:
+
+1. Запустить проект через Docker.
+2. Зарегистрировать двух пользователей.
+3. Открыть чат в двух разных браузерах или вкладках.
+4. Отправить сообщение от первого пользователя.
+5. Проверить получение сообщения вторым пользователем без обновления страницы.
+
+---
+
+# 🛠 Полезные Docker команды
+
+## Посмотреть работающие контейнеры
+
+```bash
+docker compose ps
+```
+
+---
+
+## Посмотреть логи
+
+```bash
+docker compose logs -f
+```
+
+---
+
+## Логи Laravel приложения
+
+```bash
+docker compose logs app
+```
+
+---
+
+## Логи Reverb
+
+```bash
+docker compose logs reverb
+```
+
+---
+
+## Перезапустить контейнеры
+
+```bash
+docker compose restart
+```
+
+---
+
+## Остановить проект
+
+```bash
+docker compose down
+```
+
+---
+
+## Удалить контейнеры вместе с базой данных
+
+```bash
+docker compose down -v
+```
+
+
+
+
