@@ -2,12 +2,17 @@ FROM php:8.3-fpm
 
 WORKDIR /var/www
 
+ENV TZ=Asia/Dushanbe
+
 RUN apt-get update && apt-get install -y \
+    tzdata \
     git \
     unzip \
     curl \
     libzip-dev \
-    && docker-php-ext-install pdo_mysql zip pcntl\
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && docker-php-ext-install pdo_mysql zip pcntl \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
