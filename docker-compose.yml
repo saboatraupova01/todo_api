@@ -19,13 +19,17 @@ services:
     db:
         image: mysql:8.4
         container_name: chat_mysql
+        command:
+                - --log-bin-trust-function-creators=1
+                - --slow-query-log=1
+                - --long-query-time=0.01
+                - --slow-query-log-file=/var/lib/mysql/slow.log
         restart: unless-stopped
         environment:
             MYSQL_DATABASE: chat-app
             MYSQL_USER: laravel
             MYSQL_PASSWORD: secret
             MYSQL_ROOT_PASSWORD: root
-
         healthcheck:
             test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
             interval: 5s

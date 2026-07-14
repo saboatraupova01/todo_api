@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\MessageDTO;
+use App\Http\Requests\StoreRequest;
 use App\Models\Message;
+use App\Services\MessageService;
 use Illuminate\Http\Request;
 use App\Events\MessageSent;
 use App\Events\MessageDeleted;
@@ -13,8 +16,10 @@ class MessageController extends Controller
     public function index()
     {
         $messages = Message::with('user')
-            ->oldest()
-            ->get();
+            ->latest('id')
+            ->limit(20)
+            ->get()
+            ->reverse();
 
         return response()->json([
             'data' => $messages,
@@ -22,16 +27,14 @@ class MessageController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(
+        StoreRequest $request,
+        MessageService $service
+    )
     {
-        $data = $request->validate([
-            'message' => ['required', 'string', 'max:1000'],
-        ]);
+        $dto = MessageDTO::fromRequest($request);
 
-        $message = Message::create([
-            'user_id' => auth()->id(),
-            'message' => $data['message'],
-        ]);
+        $message = $service->create($dto);
 
         event(new MessageSent($message->load('user')));
 
@@ -41,8 +44,10 @@ class MessageController extends Controller
     public function chat()
     {
         $messages = Message::with('user')
-            ->oldest()
-            ->get();
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->reverse();
 
         return view('chat.index', compact('messages'));
     }
