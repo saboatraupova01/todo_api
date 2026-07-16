@@ -84,7 +84,8 @@ class AuthController extends Controller
                 description: "Success"
             )
         ]
-    )]    public function login(LoginRequest $request)
+    )]
+    public function login(LoginRequest $request)
     {
         if (!Auth::attempt([
             'username' => $request->username,
