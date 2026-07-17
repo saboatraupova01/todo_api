@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\CategoryController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -69,9 +71,12 @@ Route::post('/login', [AuthController::class, 'login']);
     Route::get('/tasks/{task}', [TaskController::class, 'show'])
         ->middleware('permission:tasks.view');
 
-    Route::put('/tasks/{task}', [TaskController::class, 'update'])
+    Route::patch('/tasks/{task}', [TaskController::class, 'update'])
         ->middleware('permission:tasks.update');
 
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])
         ->middleware('permission:tasks.delete');
+
+    Route::get('/categories', [CategoryController::class, 'index']);
+
 });
