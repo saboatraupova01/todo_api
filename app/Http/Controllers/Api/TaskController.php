@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use AllowDynamicProperties;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
@@ -9,18 +10,26 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Services\Kafka\TaskEventProducer;
 use Illuminate\Http\Request;
+use App\Services\TaskService;
 use OpenApi\Attributes as OA;
+use App\Events\TaskCreated;
 
+#[AllowDynamicProperties]
 #[OA\Tag(name: "Tasks")]
 
 class TaskController extends Controller
 {
     private TaskEventProducer $taskEventProducer;
 
-    public function __construct(TaskEventProducer $taskEventProducer)
+    public function __construct(
+        TaskService $taskService,
+        TaskEventProducer $taskEventProducer
+    )
     {
+        $this->taskService = $taskService;
         $this->taskEventProducer = $taskEventProducer;
     }
+
     #[OA\Get(
         path: "/api/tasks",
         tags: ["Tasks"],
@@ -66,9 +75,11 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request)
     {
-        $task = $request->user()
-            ->tasks()
-            ->create($request->validated());
+        $task = $this->taskService->createTask(
+            $request->user(),
+            $request->validated()
+        );
+
         $this->taskEventProducer->taskCreated($task);
 
         return new TaskResource($task);
