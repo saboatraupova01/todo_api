@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libonig-dev \
     librdkafka-dev \
-    && pecl install rdkafka \
-    && docker-php-ext-enable rdkafka \
+    && pecl install rdkafka redis \
+    && docker-php-ext-enable rdkafka redis \
     && docker-php-ext-install pdo pdo_mysql mbstring \
     && rm -rf /var/lib/apt/lists/*
 

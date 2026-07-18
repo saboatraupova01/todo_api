@@ -29,7 +29,7 @@
         <a href="/tasks"
            class="text-2xl font-bold text-blue-600">
 
-            Todo API 🚀
+            Todo API
 
         </a>
 
@@ -123,7 +123,7 @@
 
 <footer class="text-center text-slate-500 py-6">
 
-    Todo API © {{ date('Y') }}
+    Todo API  {{ date('Y') }}
 
 </footer>
 

@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use App\Services\TaskService;
 use OpenApi\Attributes as OA;
 use App\Events\TaskCreated;
+use Illuminate\Support\Facades\Cache;
+
 
 #[AllowDynamicProperties]
 #[OA\Tag(name: "Tasks")]
@@ -41,12 +43,22 @@ class TaskController extends Controller
             )
         ]
     )]
+
     public function index(Request $request)
     {
-        $tasks = $request->user()
-            ->tasks()
-            ->with(['category', 'user'])
-            ->get();
+        $user = $request->user();
+
+        $key = "user_{$user->id}_tasks";
+
+        $tasks = Cache::remember(
+            $key,
+            60,
+            function () use ($user) {
+                return $user->tasks()
+                    ->with(['category', 'user'])
+                    ->get();
+            }
+        );
 
         return TaskResource::collection($tasks);
     }
@@ -160,6 +172,8 @@ class TaskController extends Controller
 
         $task->update($request->validated());
 
+        Cache::forget("user_{$task->user_id}_tasks");
+
         $this->taskEventProducer->taskUpdated($task);
 
         return new TaskResource($task);
@@ -187,9 +201,13 @@ class TaskController extends Controller
     {
         $this->authorize('delete', $task);
 
+        $userId = $task->user_id;
+
         $this->taskEventProducer->taskDeleted($task->id);
 
         $task->delete();
+
+        Cache::forget("user_{$userId}_tasks");
 
         return response()->json([
             'message' => 'Deleted'
