@@ -2,216 +2,206 @@
 
 namespace App\Http\Controllers\Api;
 
-use AllowDynamicProperties;
 use App\Http\Controllers\Controller;
-use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Task;
 use App\Services\Kafka\TaskEventProducer;
-use Illuminate\Http\Request;
 use App\Services\TaskService;
-use OpenApi\Attributes as OA;
-use App\Events\TaskCreated;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use App\Events\PublicTaskUpdated;
+use App\Events\PublicTaskDeleted;
 
-
-#[AllowDynamicProperties]
-#[OA\Tag(name: "Tasks")]
 
 class TaskController extends Controller
 {
+
+    private TaskService $taskService;
+
     private TaskEventProducer $taskEventProducer;
+
 
     public function __construct(
         TaskService $taskService,
         TaskEventProducer $taskEventProducer
-    )
-    {
+    ) {
+
         $this->taskService = $taskService;
         $this->taskEventProducer = $taskEventProducer;
-    }
 
-    #[OA\Get(
-        path: "/api/tasks",
-        tags: ["Tasks"],
-        security: [["passport" => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "List of tasks"
-            )
-        ]
-    )]
+    }
 
     public function index(Request $request)
     {
+
         $user = $request->user();
 
-        $key = "user_{$user->id}_tasks";
+        $tasks = $user->tasks()
+            ->where('is_public', false)
+            ->with([
+                'category',
+                'user'
+            ])
+            ->latest()
+            ->get();
 
-        $tasks = Cache::remember(
-            $key,
-            60,
-            function () use ($user) {
-                return $user->tasks()
-                    ->with(['category', 'user'])
-                    ->get();
-            }
-        );
+
 
         return TaskResource::collection($tasks);
-    }
-    #[OA\Post(
-        path: "/api/tasks",
-        tags: ["Tasks"],
-        security: [["passport" => []]],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ["title", "status"],
-                properties: [
-                    new OA\Property(property: "title", type: "string"),
-                    new OA\Property(property: "description", type: "string"),
-                    new OA\Property(property: "status", type: "string", example: "new"),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(
-                response: 201,
-                description: "Created"
-            )
-        ]
-    )]
 
+    }
 
     public function store(StoreTaskRequest $request)
     {
+
         $task = $this->taskService->createTask(
             $request->user(),
             $request->validated()
         );
 
-        $this->taskEventProducer->taskCreated($task);
+       $this->taskEventProducer
+            ->taskCreated($task);
 
         return new TaskResource($task);
+
     }
-    #[OA\Get(
-        path: "/api/tasks/{id}",
-        tags: ["Tasks"],
-        security: [["passport" => []]],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                in: "path",
-                required: true,
-                description: "Task ID",
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Task details"
-            ),
-            new OA\Response(
-                response: 401,
-                description: "Unauthenticated"
-            ),
-            new OA\Response(
-                response: 403,
-                description: "Forbidden - user cannot access this task"
-            ),
-            new OA\Response(
-                response: 404,
-                description: "Task not found"
-            )
-        ]
-    )]
+
     public function show(Task $task)
     {
-        $this->authorize('view', $task);
+        $this->authorize(
+            'view',
+            $task
+        );
 
         return new TaskResource($task);
+
     }
 
+    public function update(
+        UpdateTaskRequest $request,
+        Task $task
+    ) {
+        $this->authorize(
+            'update',
+            $task
+        );
+        $task->update(
+            $request->validated()
+        );
 
-    #[OA\Put(
-        path: "/api/tasks/{id}",
-        tags: ["Tasks"],
-        security: [["passport" => []]],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "title", type: "string"),
-                    new OA\Property(property: "description", type: "string"),
-                    new OA\Property(property: "status", type: "string"),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Updated"
-            )
-        ]
-    )]
-    public function update(UpdateTaskRequest $request, Task $task)
-    {
-        $this->authorize('update', $task);
+        Cache::forget(
+            "user_{$task->user_id}_tasks"
+        );
 
-        $task->update($request->validated());
-
-        Cache::forget("user_{$task->user_id}_tasks");
-
-        $this->taskEventProducer->taskUpdated($task);
+        $this->taskEventProducer
+            ->taskUpdated($task);
 
         return new TaskResource($task);
+
     }
-    #[OA\Delete(
-        path: "/api/tasks/{id}",
-        tags: ["Tasks"],
-        security: [["passport" => []]],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Deleted"
-            )
-        ]
-    )]
     public function destroy(Task $task)
     {
-        $this->authorize('delete', $task);
+        $this->authorize(
+            'delete',
+            $task
+        );
 
         $userId = $task->user_id;
 
-        $this->taskEventProducer->taskDeleted($task->id);
+        $this->taskEventProducer
+            ->taskDeleted($task->id);
 
         $task->delete();
 
-        Cache::forget("user_{$userId}_tasks");
+        Cache::forget(
+            "user_{$userId}_tasks"
+        );
 
         return response()->json([
-            'message' => 'Deleted'
+            'message'=>'Deleted'
         ]);
+
+    }
+
+    public function updatePublic(
+        UpdateTaskRequest $request,
+        Task $task
+    ) {
+        $user = $request->user();
+
+        if(
+            !$user->hasPermission('public-tasks.update')
+        ){
+
+            return response()->json([
+                'message'=>'Forbidden'
+            ],403);
+
+        }
+
+
+        $task->update($request->validated());
+
+        $task->load([
+            'user',
+            'category'
+        ]);
+
+
+        if($task->is_public){
+
+            event(new PublicTaskUpdated([
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'status' => $task->status,
+                'category' => $task->category?->name,
+                'user' => $task->user->name,
+            ]));
+
+        }
+
+        return new TaskResource($task);
+
+    }
+
+
+
+
+    public function destroyPublic(Task $task)
+    {
+        $user = request()->user();
+
+        if(!$user->hasPermission('public-tasks.delete')){
+
+            return response()->json([
+                'message'=>'Forbidden'
+            ],403);
+
+        }
+
+        if(!$task->is_public) {
+
+            return response()->json([
+                'message' => 'Not public task'
+            ], 403);
+
+        }
+        $task->load('user');
+
+        event(new PublicTaskDeleted([
+            'id' => $task->id,
+            'title' => $task->title,
+            'user' => $task->user->name,
+        ]));
+
+        $task->delete();
+        return response()->json([
+            'message'=>'Public task deleted'
+        ]);
+
     }
 
 

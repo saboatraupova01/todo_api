@@ -27,6 +27,7 @@ class StoreTaskRequest extends FormRequest
             'description' => 'nullable|string',
             'status' => 'sometimes|required|in:new,in_progress,done',
             'category_id' => 'sometimes|required|exists:categories,id',
+            'is_public' => 'sometimes||boolean',
         ];
     }
 }

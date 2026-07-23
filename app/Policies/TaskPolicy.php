@@ -37,19 +37,32 @@ class TaskPolicy
      */
     public function update(User $user, Task $task): Response
     {
-        return $user->id === $task->user_id
-            ? Response::allow()
-            : Response::deny('You cannot update another user\'s task.');
+        if ($task->is_public && $user->hasPermission('public-tasks.update')) {
+            return Response::allow();
+        }
+
+        if ($user->id === $task->user_id) {
+            return Response::allow();
+        }
+
+        return Response::deny('You cannot update this task');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
+
     public function delete(User $user, Task $task): Response
     {
-        return $user->id === $task->user_id
-            ? Response::allow()
-            : Response::deny('You cannot delete another user\'s task.');
+        if ($task->is_public && $user->hasPermission('public-tasks.delete')) {
+            return Response::allow();
+        }
+
+        if ($user->id === $task->user_id) {
+            return Response::allow();
+        }
+
+        return Response::deny();
     }
 
     /**

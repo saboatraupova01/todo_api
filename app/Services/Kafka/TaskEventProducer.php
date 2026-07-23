@@ -5,6 +5,8 @@ namespace App\Services\Kafka;
 use App\Models\Task;
 use Junges\Kafka\Facades\Kafka;
 use Illuminate\Support\Str;
+use App\Events\TaskCreated;
+
 
 class TaskEventProducer
 {
@@ -21,7 +23,8 @@ class TaskEventProducer
             ],
             (string)$task->id
         );
-            }
+
+    }
 
 
     public function taskUpdated(Task $task): void
@@ -64,5 +67,19 @@ class TaskEventProducer
                 'data' => $data,
             ])
             ->send();
+    }
+    public function publicTaskCreated(Task $task): void
+    {
+        $this->sendEvent(
+            'public.task.created',
+            [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'status' => $task->status,
+                'created_at' => $task->created_at,
+            ],
+            (string)$task->id
+        );
     }
 }

@@ -122,6 +122,21 @@
 
                     </div>
 
+                    <div class="mt-5">
+
+                        <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
+
+                            <input
+                                type="checkbox"
+                                id="is_public"
+                                class="rounded border-slate-300">
+
+                            Public task
+
+                        </label>
+
+                    </div>
+
 
                 </div>
 
@@ -217,7 +232,9 @@
 
                      status: document.getElementById('status').value,
 
-                     category_id: document.getElementById('category').value
+                     category_id: document.getElementById('category').value,
+
+                     is_public: document.getElementById('is_public').checked
 
                  };
 

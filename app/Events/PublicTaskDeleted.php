@@ -2,51 +2,37 @@
 
 namespace App\Events;
 
-use App\Models\Task;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskCreated implements ShouldBroadcastNow
+class PublicTaskDeleted implements ShouldBroadcastNow
 {
     use Dispatchable, SerializesModels;
 
 
     public function __construct(
-        public Task $task
+        public array $task
     ) {}
 
 
     public function broadcastOn(): array
     {
         return [
-            new Channel('tasks')
+            new Channel('public-tasks')
         ];
     }
-
-
     public function broadcastAs(): string
     {
-        return 'task.created';
+        return 'public.task.deleted';
     }
 
 
     public function broadcastWith(): array
     {
         return [
-
-            'task' => [
-                'title' => $this->task->title,
-                'description' => $this->task->description,
-                'status' => $this->task->status,
-                'category' => $this->task->category?->name,
-            ],
-            'user' => [
-                'name' => $this->task->user->name
-
-            ]
-
+            'task' => $this->task
         ];
     }
 }

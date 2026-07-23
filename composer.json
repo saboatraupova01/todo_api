@@ -7,12 +7,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "ext-redis": "*",
         "darkaonline/l5-swagger": "^11.1",
         "laravel/framework": "^13.8",
         "laravel/passport": "^13.0",
+        "laravel/reverb": "^1.10",
         "laravel/tinker": "^3.0",
-        "mateusjunges/laravel-kafka": "^2.11",
-        "ext-redis": "*"
+        "mateusjunges/laravel-kafka": "^2.11"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

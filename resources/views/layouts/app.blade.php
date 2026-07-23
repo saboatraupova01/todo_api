@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @vite('resources/js/app.js')
 
     <title>
         @yield('title', 'Todo API')
@@ -74,7 +75,12 @@
 
                 </a>
 
+                <a href="/public-tasks"
+                   class="text-slate-600 hover:text-blue-600">
 
+                    Public Tasks
+
+                </a>
 
                 <a href="/tasks/create"
                    class="text-slate-600 hover:text-blue-600">
@@ -82,6 +88,8 @@
                     Create Task
 
                 </a>
+
+
 
                 <span id="navUsername"
                       class="font-medium text-slate-700">
@@ -193,6 +201,7 @@
 
 @yield('scripts')
 
+<div id="notification-container"></div>
 
 </body>
 
