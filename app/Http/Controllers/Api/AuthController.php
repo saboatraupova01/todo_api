@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
+use App\Models\Role;
 use App\Services\Kafka\UserEventProducer;
+
 
 class AuthController extends Controller
 {
@@ -54,6 +56,10 @@ class AuthController extends Controller
             'username' => $username,
             'password' => Hash::make($passwordPlain),
         ]);
+        $userRole = Role::where('code', 'user')->first();
+
+        $user->roles()->attach($userRole->id);
+
         $this->userEventProducer->userCreated($user);
         SendWelcomeEmailJob::dispatch($user, $passwordPlain);
 

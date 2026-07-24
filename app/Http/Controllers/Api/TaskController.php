@@ -36,6 +36,7 @@ class TaskController extends Controller
     {
         $tasks = $request->user()
             ->tasks()
+            ->with(['category', 'user'])
             ->get();
 
         return TaskResource::collection($tasks);
