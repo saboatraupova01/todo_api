@@ -1,467 +1,397 @@
-# 🚀 Todo API (Laravel + Docker)
+# Todo API
 
-![Laravel](https://img.shields.io/badge/Laravel-13-red?style=for-the-badge&logo=laravel)
-![Docker](https://img.shields.io/badge/Docker-Enabled-blue?style=for-the-badge&logo=docker)
-![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
-![Swagger](https://img.shields.io/badge/Swagger-API%20Docs-green?style=for-the-badge&logo=swagger)
-![Kafka](https://img.shields.io/badge/Apache%20Kafka-Enabled-black?style=for-the-badge&logo=apachekafka)
+REST API приложение для управления задачами с системой ролей и разрешений.
+
+Проект реализован на Laravel и включает аутентификацию пользователей, управление задачами, роли и permissions, очереди, Redis, Kafka и real-time обновления через WebSocket.
 
 ---
 
-# 📌 Описание проекта
+## Возможности проекта
 
-**Todo API** — это backend REST API приложение, разработанное на Laravel и полностью контейнеризированное с помощью Docker.
+## Аутентификация
 
-Проект реализует систему управления задачами с авторизацией пользователей, ролями и разрешениями, фоновой обработкой задач и автоматической отправкой email-уведомлений.
+- Регистрация пользователей
+- Авторизация через Laravel Passport
+- Работа с API токенами
+- Управление доступом через роли и permissions
 
 ---
 
-# ✨ Возможности проекта
+## Управление задачами
 
-## 🔐 Authentication & Authorization
+Реализованы:
 
-Реализовано:
+- Создание задач
+- Просмотр задач
+- Обновление задач
+- Удаление задач
+- Пагинация
+- Сортировка
+- Категории задач
+- Статусы задач
 
-- регистрация пользователей
-- авторизация через username и password
-- генерация API токенов через Laravel Passport
-- защита API маршрутов
-- система ролей и permissions
+Доступные статусы:
 
-Примеры ролей:
+- `new`
+- `in_progress`
+- `done`
+
+---
+
+## Публичные задачи
+
+В проекте реализована возможность создания публичных задач.
+
+Публичные задачи:
+
+- доступны всем пользователям;
+- отображаются в режиме реального времени;
+- отправляют уведомления при изменении.
+
+Создавать публичные задачи может только пользователь с соответствующим permission.
+
+---
+
+# Система ролей и разрешений
+
+В проекте реализована ролевая модель доступа (RBAC).
+
+Доступные роли:
 
 - Super Admin
 - Admin
 - Manager
 - User
 
----
-## Авторизация и контроль доступа
+Каждая роль имеет свой набор разрешений.
 
-В проекте реализована многоуровневая система авторизации, которая включает аутентификацию пользователей, роли, разрешения и проверку доступа к конкретным ресурсам.
-
-### Аутентификация
-
-Для аутентификации используется Laravel Passport.
-
-После успешного входа пользователь получает access token, который используется для доступа к защищённым API-эндпоинтам.
-
----
-
-### Роли и разрешения (RBAC)
-
-В проекте реализована ролевая модель доступа (Role-Based Access Control).
-
-Пользователь может иметь одну роль. Каждая роль содержит набор разрешений, которые определяют доступные действия.
-
-Примеры разрешений:
-
-* `users.view`
-* `users.create`
-* `users.update`
-* `users.delete`
-* `tasks.view`
-* `tasks.create`
-* `tasks.update`
-* `tasks.delete`
-
-Перед выполнением действия middleware проверяет, есть ли у пользователя необходимое разрешение.
-
-Например:
+Примеры permissions:
 
 ```
-permission:tasks.update
+tasks.view
+tasks.create
+tasks.update
+tasks.delete
+
+users.view
+users.create
+users.update
+users.delete
+
+create-public-tasks
 ```
 
-Если у пользователя нет соответствующего разрешения, API возвращает ошибку `403 Forbidden`.
+Проверка доступа реализована через:
+
+- Middleware permissions
+- Policies
+- AuthorizationException
 
 ---
 
-### Владение задачами (Task Ownership)
+# Real-time обновления
 
-Каждая задача связана с конкретным пользователем через поле `user_id`.
+Для работы с WebSocket используется:
 
-При создании задачи владелец определяется автоматически из текущего авторизованного пользователя.
+- Laravel Reverb
+- Laravel Echo
 
-Пример:
+Пользователи получают обновления без перезагрузки страницы.
 
-```
-Пользователь A
- |
- ├── Задача 1
- └── Задача 2
+Поддерживаются события:
 
-
-Пользователь B
- |
- └── Задача 3
-```
-
-Пользователь может просматривать, изменять и удалять только свои задачи.
-
-Проверка владельца реализована через Laravel Policy.
-
-Пример:
-
-```php
-public function update(User $user, Task $task): bool
-{
-    return $user->id === $task->user_id;
-}
-```
-
-Если пользователь пытается изменить или удалить чужую задачу, API возвращает ошибку `403 Forbidden`.
+- создание публичной задачи;
+- обновление публичной задачи;
+- удаление публичной задачи.
 
 ---
 
-### Поток проверки доступа
+# Очереди
 
-Запрос пользователя проходит следующие этапы:
+В проекте используется Laravel Queue совместно с Redis.
 
-```
-HTTP Request
-      |
-      ↓
-Passport Authentication
-      |
-      ↓
-Permission Middleware
-      |
-      ↓
-Controller
-      |
-      ↓
-Task Policy
-      |
-      ↓
-Database
-```
+Очереди используются для:
 
-Таким образом, в проекте используются два уровня проверки:
-
-1. **Permissions** — проверяют, может ли пользователь выполнять определённое действие.
-2. **Policies** — проверяют, имеет ли пользователь доступ к конкретному объекту.
-
-
-## ✅ Task Management
-
-CRUD операции для задач:
-
-- создание задачи
-- просмотр списка задач
-- просмотр одной задачи
-- обновление задачи
-- удаление задачи
-
-Каждая задача содержит:
-
-- title
-- description
-- status
-
-Статусы задач:
-
-- new
-- in_progress
-- done
+- выполнения фоновых задач;
+- обработки событий;
+- асинхронных операций.
 
 ---
 
-# 🐳 Docker Environment
+# Kafka
 
-Проект полностью работает внутри Docker.
-
-Используемые сервисы:
-
-| Container | Назначение |
-|-----------|------------|
-| nginx | Web server |
-| app | Laravel + PHP-FPM |
-| queue | Laravel Queue Worker |
-| db | MySQL 8.0 |
-| kafka | Apache Kafka Broker |
-| kafka-consumer | Kafka Event Consumer |
-
-
----
-## Apache Kafka
-
-Kafka используется для обработки событий приложения.
-
-Реализованные события:
-
-### Tasks
-- task.created
-- task.updated
-- task.deleted
-
-### Users
-- user.created
-- user.updated
-- user.role.assigned
-- user.permission.assigned
-
-Kafka topic:
-
-- task.events
-- user.events
-
-### Kafka Consumer
-Consumer запускается автоматически через Docker:
-
-```
-php artisan kafka:consume
-```
-
-## 📧 Email Configuration
-
-По умолчанию используется:
-
-#### MAIL_MAILER=log
-
-Письма сохраняются в:
-
-#### storage/logs/laravel.log
-
-Для реальной отправки через SMTP необходимо настроить собственные SMTP данные в `.env`.
-
-
-## ⚡ Быстрый старт
-
-### 1. Клонирование проекта
-
-```bash
-git clone <repo-url>
-
-cd todo_api
-```
-### 2. Запуск Docker
-```
-docker compose up -d --build
-```
-
-### После запуска автоматически выполняется:
-
- - создание .env из .env.example
- - установка Composer зависимостей
- - ожидание готовности MySQL
- - проверка APP_KEY
- - выполнение миграций
- - генерация Swagger документации
- - настройка Laravel Passport
- - запуск PHP-FPM
- - запуск Queue Worker
-
-## 3. Открыть приложение
-```
-http://localhost:8080
-```
-
-## 📚 Swagger API Documentation
-
-Для документации API используется:
-```
-darkaonline/l5-swagger
-```
-
-Swagger автоматически генерируется при запуске контейнера.
-
-После запуска проекта документация доступна:
-
-```
-http://localhost:8080/api/documentation
-```
-
-Swagger позволяет:
-
- - просматривать API endpoints
- - отправлять тестовые запросы
- - проверять авторизацию
- - тестировать CRUD операции
- - 
-## 🔑 Laravel Passport
-
-Для API авторизации используется Laravel Passport.
-
-При запуске Docker автоматически:
-
- - создаются OAuth keys
- - создаётся Personal Access Client
- - проверяется наличие существующих ключей
-
-Это позволяет получать API токены после авторизации пользователя.
-
-## 🔄 Queue & Background Jobs
-
-В проекте используется Laravel Queue для выполнения фоновых задач.
-
-Реализовано:
-
-- отдельный Docker контейнер для queue worker
-- обработка Jobs в фоне
-- отправка email после регистрации пользователя
-
-Пример процесса:
-
-User Registration
-
-        ↓
-
-Create Job
-
-        ↓
-
-Queue Worker
-
-        ↓
-
-Send Email
-
-### Queue автоматически запускается:
-```
-php artisan queue:work --tries=3 --verbose
-```
-
-## 🗄 База данных
+Добавлен Kafka consumer для обработки событий задач.
 
 Используется:
 
-MySQL 8.0
+- Apache Kafka
+- Kafka Producer
+- Kafka Consumer
 
-Настройки:
+События задач отправляются в Kafka для дальнейшей обработки.
 
-Параметр	Значение
-Database	todo_api
-User	user
-Password	password
-Host	db
-Port	3306
+---
 
-## 🌐 Порты
+# Используемые технологии
 
-По умолчанию:
+## Backend
 
-Service	Port
-Nginx	8080
-MySQL	3306
+- PHP 8.3
+- Laravel
+- Laravel Passport
+- Laravel Reverb
+- Laravel Queue
+- Redis
+- Apache Kafka
+- MySQL 8
 
-### ⚠️ Возможная ошибка: порт занят
+## Frontend
 
-Ошибка:
+- Blade
+- JavaScript
+- Laravel Echo
+- Vite
 
-Bind for 0.0.0.0:8080 failed: port is already allocated
+## Infrastructure
 
-Причина:
+- Docker
+- Docker Compose
+- Nginx
 
-Порт уже используется другим контейнером или приложением.
+---
 
-Решение:
+# Запуск проекта
 
-Изменить порт в docker-compose.yml:
+## 1. Клонирование проекта
 
+```bash
+git clone <repository-url>
+
+cd todo_api
 ```
-ports:
-  - "8081:80"
-```
 
-Пример:
+---
 
-Проект	Порт
-основной	8080
-копия	8081
-тест	8082
+## 2. Запуск Docker контейнеров
 
-## 🐳 Docker Commands
-
-### Запуск:
-
-```
+```bash
 docker compose up -d --build
 ```
 
-### Остановка:
+---
 
-```
-docker compose down
-```
+## 3. Проверка запущенных контейнеров
 
-### Просмотр контейнеров:
-
-```
+```bash
 docker ps
 ```
 
-### Логи приложения:
+Должны быть запущены:
+
+- todo_app
+- todo_nginx
+- todo_mysql
+- todo_redis
+- todo_queue
+- todo_reverb
+- kafka
+- kafka consumer
+
+---
+
+## 4. Открыть приложение
+
 ```
-docker compose logs -f app
+http://localhost:8082
 ```
 
-### Логи очереди:
+---
+
+# Работа с ролями
+
+После регистрации новый пользователь получает роль:
+
 ```
-docker compose logs -f queue
+User
 ```
 
-### Логи Consumer:
-```
-docker compose logs -f kafka-consumer
+Чтобы назначить пользователю роль Manager, используется Artisan команда:
+
+```bash
+docker exec -it todo_app php artisan app:make-manager
 ```
 
-### Вход в Laravel контейнер:
-```
-docker compose exec app bash
+После изменения роли необходимо выполнить:
+
+1. Logout
+2. Login заново
+
+чтобы обновились текущие permissions пользователя.
+
+---
+
+# Основные команды
+
+## Выполнить Artisan команды
+
+```bash
+docker exec -it todo_app php artisan
 ```
 
-## 📁 Project Structure
-todo_api/
+---
 
-├── app/
-├── routes/
-├── database/
-├── storage/
+## Проверить состояние миграций
+
+```bash
+docker exec -it todo_app php artisan migrate:status
+```
+
+---
+
+## Запуск очередей
+
+```bash
+docker exec -it todo_queue php artisan queue:work
+```
+
+---
+
+## Просмотр логов приложения
+
+```bash
+docker logs -f todo_app
+```
+
+---
+
+## Просмотр логов очередей
+
+```bash
+docker logs -f todo_queue
+```
+
+---
+
+# Архитектура проекта
+
+Основная структура:
+
+```
+app
+├── Console
+│   └── Commands
 │
-├── docker/
-│   └── php/
-│       └── Dockerfile
+├── Events
 │
-├── docker-compose.yml
-├── entrypoint.sh
-├── composer.json
-└── README.md
+├── Http
+│   ├── Controllers
+│   ├── Requests
+│   └── Resources
+│
+├── Models
+│
+├── Policies
+│
+└── Services
+```
 
-## ⚙️ Environment
+Используются следующие подходы:
 
-.env создаётся автоматически при первом запуске.
+### Service Layer
 
-Основные переменные:
+Бизнес-логика вынесена в сервисы.
 
- - DB_CONNECTION=mysql
- - DB_HOST=db
- - DB_DATABASE=todo_api
- - DB_USERNAME=user
- - DB_PASSWORD=password
- - KAFKA_BROKERS=kafka:9092
- - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
- - KAFKA_CONSUMER_GROUP_ID=group
+Пример:
 
+```
+TaskService
+```
 
-## 🚀 Features
-- ✅ Laravel REST API
-- ✅ Dockerized environment
-- ✅ Nginx + PHP-FPM
-- ✅ MySQL database
-- ✅ Laravel Passport authentication
-- ✅ Roles & Permissions system
-- ✅ Swagger API documentation
-- ✅ Laravel Queue Worker
-- ✅ Apache Kafka integration
-- ✅ Event-driven architecture
-- ✅ Kafka Consumer processing
-- ✅ Ready for cloning and deployment
+---
 
-## 🧠 Notes
-- Первый запуск может занять больше времени из-за установки Composer зависимостей.
-- .env создаётся автоматически.
-- Миграции запускаются автоматически.
-- Swagger документация генерируется автоматически.
-- Queue worker запускается автоматически.
-- Для изменения портов необходимо изменить docker-compose.yml.
+### Form Requests
+
+Используются для:
+
+- валидации данных;
+- отделения логики проверки от контроллеров.
+
+---
+
+### Policies
+
+Используются для проверки доступа к ресурсам.
+
+Например:
+
+- пользователь может редактировать только свои задачи;
+- проверка прав доступа к задачам.
+
+---
+
+### Events
+
+Используются для событийной архитектуры.
+
+Примеры:
+
+```
+TaskCreated
+PublicTaskCreated
+PublicTaskUpdated
+PublicTaskDeleted
+```
+---
+
+# Проверка проекта
+
+Рекомендуемый сценарий:
+
+## 1. Создать первого пользователя
+
+Зарегистрироваться через приложение.
+
+---
+
+## 2. Назначить роль Manager
+
+```bash
+docker exec -it todo_app php artisan app:make-manager
+```
+
+---
+
+## 3. Выполнить повторный вход
+
+После изменения роли:
+
+- выйти из аккаунта;
+- войти снова.
+
+---
+
+## 4. Проверить публичные задачи
+
+Менеджер:
+
+- создаёт публичную задачу;
+- изменяет её;
+- удаляет её.
+
+Обычный пользователь:
+
+- видит публичную задачу;
+- получает уведомления;
+- не может изменять/удалять чужие задачи.
+
+---
+
+## 5. Проверить Real-time
+
+Открыть два аккаунта одновременно.
+
+При создании или изменении публичной задачи:
+
+- второй пользователь получает обновление без перезагрузки страницы.
+
+---
