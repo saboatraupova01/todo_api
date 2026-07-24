@@ -1,24 +1,28 @@
 FROM php:8.3-fpm
+WORKDIR /var/www
 
 RUN apt-get update && apt-get install -y \
     git \
-    zip \
     unzip \
-    libonig-dev \
+    curl \
+    libzip-dev \
     librdkafka-dev \
-    && pecl install rdkafka \
-    && docker-php-ext-enable rdkafka \
-    && docker-php-ext-install pdo pdo_mysql mbstring \
+    nodejs \
+    npm \
+    default-mysql-client \
+    && pecl install rdkafka redis \
+    && docker-php-ext-enable rdkafka redis \
+    && docker-php-ext-install pdo_mysql zip pcntl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install pdo_mysql zip
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+COPY . .
 
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x docker/php/entrypoint.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["docker/php/entrypoint.sh"]
 
 CMD ["php-fpm"]

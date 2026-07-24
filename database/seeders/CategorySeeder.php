@@ -9,16 +9,20 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        Category::insert([
-            [
-                'name'=>'Easy',
-            ],
-            [
-                'name'=>'Medium',
-            ],
-            [
-                'name'=>'Hard',
-            ],
-        ]);
+        $categories = [
+            'Easy',
+            'Medium',
+            'Hard',
+        ];
+
+        foreach ($categories as $category) {
+
+            Category::updateOrCreate(
+                [
+                    'name' => $category
+                ]
+            );
+
+        }
     }
 }

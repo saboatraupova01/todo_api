@@ -17,6 +17,7 @@ class Task extends Model
         'title',
         'description',
         'status',
+        'is_public',
     ];
 
     protected $casts = [

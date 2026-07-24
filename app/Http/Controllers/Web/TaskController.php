@@ -3,41 +3,65 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreTaskRequest;
-use App\Models\Category;
 use App\Models\Task;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Category;
 
 class TaskController extends Controller
 {
+
     public function index()
     {
-        $tasks = Task::with('category')->latest()->get();
-
-        return view('tasks.index', compact('tasks'));
+        return view('tasks.index');
     }
+
 
     public function create()
     {
+        return view('tasks.create');
+    }
+
+
+    public function edit(Task $task)
+    {
         $categories = Category::all();
 
-        return view('tasks.create', compact('categories'));
+        return view('tasks.edit', compact(
+            'task',
+            'categories'
+        ));
     }
 
 
-    public function store(StoreTaskRequest $request)
+    public function publicTasks()
     {
-        Task::create([
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => $request->status,
-            'category_id' => $request->category_id,
-        ]);
+        $tasks = Task::where('is_public', true)
+            ->with([
+                'user',
+                'category'
+            ])
+            ->latest()
+            ->get();
 
-        return redirect()
-            ->route('tasks.index')
-            ->with('success', 'Task created successfully.');
+
+        return view(
+            'tasks.public',
+            compact('tasks')
+        );
     }
+
+
+    public function editPublic(Task $task)
+    {
+        $categories = Category::all();
+
+
+        return view(
+            'tasks.public-edit',
+            compact(
+                'task',
+                'categories'
+            )
+        );
+    }
+
 }

@@ -17,26 +17,30 @@ class RolePermissionSeeder extends Seeder
 
         $all = Permission::pluck('id');
 
-        // SUPER ADMIN → всё
         $superAdmin->permissions()->sync(Permission::all()->pluck('id'));
-        // ADMIN → почти всё кроме permissions delete
+
+
         $admin->permissions()->sync(
             Permission::whereNotIn('code', [
                 'permissions.delete'
             ])->pluck('id')
         );
 
-        // MANAGER → только работа с users
         $manager->permissions()->sync(
             Permission::whereIn('code', [
                 'users.view',
                 'users.create',
                 'users.update',
                 'tasks.view',
+                'tasks.create',
+                'tasks.update',
+                'tasks.delete',
+                'create-public-tasks',
+                'public-tasks.update',
+                'public-tasks.delete',
             ])->pluck('id')
         );
 
-        // USER → только просмотр
         $user->permissions()->sync(
             Permission::whereIn('code', [
                 'tasks.view',

@@ -29,6 +29,10 @@ class PermissionSeeder extends Seeder
             'tasks.create',
             'tasks.update',
             'tasks.delete',
+
+            'create-public-tasks',
+            'public-tasks.update',
+            'public-tasks.delete',
         ];
 
         foreach ($permissions as $perm) {

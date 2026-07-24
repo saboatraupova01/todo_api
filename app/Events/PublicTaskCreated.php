@@ -4,13 +4,14 @@ namespace App\Events;
 
 use App\Models\Task;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskCreated implements ShouldBroadcastNow
+class PublicTaskCreated implements ShouldBroadcastNow
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
 
     public function __construct(
@@ -21,32 +22,27 @@ class TaskCreated implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('tasks')
+            new Channel('public-tasks'),
         ];
-    }
-
-
-    public function broadcastAs(): string
-    {
-        return 'task.created';
     }
 
 
     public function broadcastWith(): array
     {
         return [
-
             'task' => [
+                'id' => $this->task->id,
                 'title' => $this->task->title,
                 'description' => $this->task->description,
                 'status' => $this->task->status,
                 'category' => $this->task->category?->name,
-            ],
-            'user' => [
-                'name' => $this->task->user->name
-
+                'user' => $this->task->user->name,
             ]
-
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'public.task.created';
     }
 }
