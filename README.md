@@ -207,7 +207,12 @@ Docker автоматически:
 - запускает Vite
 
 ---
+#### Запустить сидеры
+```bash
+docker compose exec app php artisan migrate --seed
+```
 
+---
 ## 4. Открыть приложение
 
 Перейти:

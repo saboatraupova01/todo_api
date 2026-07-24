@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/messages', [MessageController::class, 'index']);
-    Route::get('/chat', [MessageController::class, 'chat']);
+    Route::get('/chat', [MessageController::class, 'chat'])->name('chat');
     Route::post('/messages', [MessageController::class, 'store']);
     Route::delete('/messages/{message}',
         [MessageController::class, 'destroy'])->name('messages.destroy');
@@ -27,8 +27,6 @@ Route::middleware('auth')->group(function () {
         [MessageController::class, 'edit'])->name('messages.edit');
     Route::put('/messages/{message}',
         [MessageController::class, 'update']);
-
-    Route::get('/chat', [MessageController::class, 'chat'])->name('chat');
 
 });
 
