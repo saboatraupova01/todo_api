@@ -215,11 +215,12 @@ http://localhost:8082
 User
 ```
 
-Чтобы назначить пользователю роль Manager, используется Artisan команда:
+Чтобы назначить пользователю роль пользователю, используется Artisan команда:
 
 ```bash
-docker exec -it todo_app php artisan app:make-manager
+docker exec -it todo_app php artisan user:assign-role {user_id} {role_name)
 ```
+В нашем случае можно дать роль Manager пользователю чтобы создать публичную задачу.
 
 После изменения роли необходимо выполнить:
 
